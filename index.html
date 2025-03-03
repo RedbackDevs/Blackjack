@@ -139,7 +139,7 @@
                 let aces = 0;
                 for (let card of this.cards) {
                     if (card.rank === 'ace') {
-                        aces += 1;
+                        aces++;
                         value += 11;
                     } else if (['jack', 'queen', 'king'].includes(card.rank)) {
                         value += 10;
@@ -149,7 +149,7 @@
                 }
                 while (value > 21 && aces > 0) {
                     value -= 10;
-                    aces -= 1;
+                    aces--;
                 }
                 return value;
             }
@@ -200,7 +200,7 @@
                 super(name, true);
             }
             decideAction(hand) {
-                // Basic strategy: hit if < 17, stand otherwise
+                // Basic strategy: hit if value is less than 17, stand otherwise
                 return hand.getValue() < 17 ? 'hit' : 'stand';
             }
         }
@@ -240,6 +240,10 @@
             }
 
             startRound(humanBet) {
+                // Reset indices for the new round
+                this.currentPlayerIndex = 0;
+                this.currentHandIndex = 0;
+                // Place bets for all players
                 this.players[0].placeBet(humanBet);
                 this.players.slice(1).forEach(ai => ai.placeBet(Math.min(10, ai.balance)));
                 this.dealInitialCards();
@@ -280,7 +284,7 @@
                     this.players.forEach(player => {
                         player.hands.forEach(hand => {
                             if (hand.isBlackjack()) {
-                                const payout = Math.floor(player.bet * 1.5); // 3:2
+                                const payout = Math.floor(player.bet * 1.5); // 3:2 payout
                                 player.win(player.bet + payout);
                                 player.bet = 0; // Hand is settled
                             }
@@ -322,7 +326,7 @@
                     this.currentHandIndex = 0;
                     if (this.currentPlayerIndex >= this.players.length) {
                         this.state = 'dealerTurn';
-                        this.message = 'Dealer\'s turn';
+                        this.message = "Dealer's turn";
                         render();
                         setTimeout(() => {
                             this.dealer.play(this.deck);
@@ -448,7 +452,9 @@
                 if (game.state === 'playerTurn' && pIndex === game.currentPlayerIndex) {
                     playerDiv.classList.add('active-player');
                 }
-                playerDiv.innerHTML = `<h3>${player.name}</h3><p>Balance: $${player.balance}</p><p>Bet: $${player.bet}</p>`;
+                playerDiv.innerHTML = `<h3>${player.name}</h3>
+                                       <p>Balance: $${player.balance}</p>
+                                       <p>Bet: $${player.bet}</p>`;
                 if (player.insuranceBet > 0) {
                     playerDiv.innerHTML += `<p>Insurance: $${player.insuranceBet}</p>`;
                 }

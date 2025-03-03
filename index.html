@@ -1,562 +1,579 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackjack 21</title>
-    <style>
-        body {
-            background-color: #2e7d32; /* Green felt */
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-        #game-container {
-            max-width: 1200px;
-            margin: auto;
-        }
-        .hand {
-            margin: 20px;
-        }
-        .players {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-        }
-        .player {
-            margin: 10px;
-            padding: 10px;
-            border: 1px solid white;
-            flex: 1;
-            min-width: 200px;
-        }
-        .active-player {
-            border: 2px solid yellow;
-        }
-        .card {
-            width: 80px;
-            height: 120px;
-            margin: 5px;
-            vertical-align: top;
-        }
-        .card.dealt {
-            animation: dealCard 0.5s ease;
-        }
-        @keyframes dealCard {
-            from { transform: translateY(-100vh); }
-            to { transform: translateY(0); }
-        }
-        #controls button {
-            margin: 5px;
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-        #message {
-            font-size: 20px;
-            margin: 15px;
-        }
-        #betting-area {
-            margin: 20px;
-        }
-        #bet-input {
-            padding: 5px;
-            font-size: 16px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blackjack 21</title>
+  <style>
+    body {
+      background-color: #2e7d32; /* Green felt */
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    #game-container {
+      max-width: 1200px;
+      margin: auto;
+    }
+    .hand {
+      margin: 20px;
+    }
+    .players {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+    .player {
+      margin: 10px;
+      padding: 10px;
+      border: 1px solid white;
+      flex: 1;
+      min-width: 200px;
+    }
+    .active-player {
+      border: 2px solid yellow;
+    }
+    .card {
+      width: 80px;
+      height: 120px;
+      margin: 5px;
+      vertical-align: top;
+    }
+    .card.dealt {
+      animation: dealCard 0.5s ease;
+    }
+    @keyframes dealCard {
+      from { transform: translateY(-100vh); }
+      to { transform: translateY(0); }
+    }
+    #controls button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #message {
+      font-size: 20px;
+      margin: 15px;
+    }
+    #betting-area {
+      margin: 20px;
+    }
+    #bet-input {
+      padding: 5px;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
-    <div id="game-container">
-        <h1>Blackjack 21</h1>
-        <div id="dealer-hand" class="hand">
-            <h2>Dealer</h2>
-        </div>
-        <div id="players-container" class="players"></div>
-        <div id="message"></div>
-        <div id="controls">
-            <button id="hit-button" disabled>Hit</button>
-            <button id="stand-button" disabled>Stand</button>
-            <button id="double-button" disabled>Double Down</button>
-            <button id="split-button" disabled>Split</button>
-            <button id="surrender-button" disabled>Surrender</button>
-            <button id="insurance-button" disabled>Insurance</button>
-        </div>
-        <div id="betting-area">
-            <input type="number" id="bet-input" placeholder="Bet amount" min="1">
-            <button id="deal-button">Deal</button>
-        </div>
+  <div id="game-container">
+    <h1>Blackjack 21</h1>
+    <div id="dealer-hand" class="hand">
+      <h2>Dealer</h2>
     </div>
+    <div id="players-container" class="players"></div>
+    <div id="message"></div>
+    <div id="controls">
+      <button id="hit-button" disabled>Hit</button>
+      <button id="stand-button" disabled>Stand</button>
+      <button id="double-button" disabled>Double Down</button>
+      <button id="split-button" disabled>Split</button>
+      <button id="surrender-button" disabled>Surrender</button>
+      <button id="insurance-button" disabled>Insurance</button>
+    </div>
+    <div id="betting-area">
+      <input type="number" id="bet-input" placeholder="Bet amount" min="1" />
+      <button id="deal-button">Deal</button>
+    </div>
+  </div>
 
-    <script>
-        // Constants
-        const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
-        const ranks = ['ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king'];
+  <script>
+    // Constants
+    const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+    const ranks = ['ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king'];
 
-        // Card Class
-        class Card {
-            constructor(suit, rank) {
-                this.suit = suit;
-                this.rank = rank;
-            }
-            getImage() {
-                return `cards/${this.rank}_of_${this.suit}.png`;
-            }
+    // Card Class
+    class Card {
+      constructor(suit, rank) {
+        this.suit = suit;
+        this.rank = rank;
+      }
+      getImage() {
+        return `cards/${this.rank}_of_${this.suit}.png`;
+      }
+    }
+
+    // Deck Class
+    class Deck {
+      constructor() {
+        this.cards = [];
+        for (let suit of suits) {
+          for (let rank of ranks) {
+            this.cards.push(new Card(suit, rank));
+          }
         }
-
-        // Deck Class
-        class Deck {
-            constructor() {
-                this.cards = [];
-                for (let suit of suits) {
-                    for (let rank of ranks) {
-                        this.cards.push(new Card(suit, rank));
-                    }
-                }
-            }
-            shuffle() {
-                for (let i = this.cards.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
-                }
-            }
-            deal() {
-                if (this.cards.length < 10) this.shuffle(); // Reshuffle if low
-                return this.cards.pop();
-            }
+      }
+      shuffle() {
+        for (let i = this.cards.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
         }
+      }
+      deal() {
+        if (this.cards.length < 10) this.shuffle(); // Reshuffle if low
+        return this.cards.pop();
+      }
+    }
 
-        // Hand Class
-        class Hand {
-            constructor() {
-                this.cards = [];
-            }
-            addCard(card) {
-                this.cards.push(card);
-            }
-            getValue() {
-                let value = 0;
-                let aces = 0;
-                for (let card of this.cards) {
-                    if (card.rank === 'ace') {
-                        aces++;
-                        value += 11;
-                    } else if (['jack', 'queen', 'king'].includes(card.rank)) {
-                        value += 10;
-                    } else {
-                        value += parseInt(card.rank);
-                    }
-                }
-                while (value > 21 && aces > 0) {
-                    value -= 10;
-                    aces--;
-                }
-                return value;
-            }
-            isBlackjack() {
-                return this.cards.length === 2 && this.getValue() === 21;
-            }
-            isBust() {
-                return this.getValue() > 21;
-            }
-            canSplit() {
-                return this.cards.length === 2 && this.cards[0].rank === this.cards[1].rank;
-            }
+    // Hand Class
+    class Hand {
+      constructor() {
+        this.cards = [];
+      }
+      addCard(card) {
+        this.cards.push(card);
+      }
+      getValue() {
+        let value = 0;
+        let aces = 0;
+        for (let card of this.cards) {
+          if (card.rank === 'ace') {
+            aces++;
+            value += 11;
+          } else if (['jack', 'queen', 'king'].includes(card.rank)) {
+            value += 10;
+          } else {
+            value += parseInt(card.rank);
+          }
         }
-
-        // Player Class
-        class Player {
-            constructor(name, isAI = false) {
-                this.name = name;
-                this.isAI = isAI;
-                this.balance = 1000;
-                this.bet = 0;
-                this.hands = [new Hand()];
-                this.insuranceBet = 0;
-            }
-            placeBet(amount) {
-                if (amount > this.balance) throw new Error('Insufficient balance');
-                this.bet = amount;
-                this.balance -= amount;
-            }
-            placeInsurance(amount) {
-                if (amount > this.balance || amount > this.bet / 2) throw new Error('Invalid insurance bet');
-                this.insuranceBet = amount;
-                this.balance -= amount;
-            }
-            win(amount) {
-                this.balance += amount;
-            }
-            reset() {
-                this.bet = 0;
-                this.insuranceBet = 0;
-                this.hands = [new Hand()];
-            }
+        while (value > 21 && aces > 0) {
+          value -= 10;
+          aces--;
         }
+        return value;
+      }
+      isBlackjack() {
+        return this.cards.length === 2 && this.getValue() === 21;
+      }
+      isBust() {
+        return this.getValue() > 21;
+      }
+      canSplit() {
+        return this.cards.length === 2 && this.cards[0].rank === this.cards[1].rank;
+      }
+    }
 
-        // AIPlayer Class
-        class AIPlayer extends Player {
-            constructor(name) {
-                super(name, true);
-            }
-            decideAction(hand) {
-                // Basic strategy: hit if value is less than 17, stand otherwise
-                return hand.getValue() < 17 ? 'hit' : 'stand';
-            }
+    // Player Class
+    class Player {
+      constructor(name, isAI = false) {
+        this.name = name;
+        this.isAI = isAI;
+        this.balance = 1000;
+        this.bet = 0;
+        this.hands = [new Hand()];
+        this.insuranceBet = 0;
+      }
+      placeBet(amount) {
+        if (amount > this.balance) throw new Error('Insufficient balance');
+        this.bet = amount;
+        this.balance -= amount;
+      }
+      placeInsurance(amount) {
+        if (amount > this.balance || amount > this.bet / 2) throw new Error('Invalid insurance bet');
+        this.insuranceBet = amount;
+        this.balance -= amount;
+      }
+      win(amount) {
+        this.balance += amount;
+      }
+      // Resets only the hand and insurance bet (keeps the bet intact for the round)
+      resetHand() {
+        this.hands = [new Hand()];
+        this.insuranceBet = 0;
+      }
+      // Full reset (used after round is evaluated)
+      reset() {
+        this.bet = 0;
+        this.insuranceBet = 0;
+        this.hands = [new Hand()];
+      }
+    }
+
+    // AIPlayer Class
+    class AIPlayer extends Player {
+      constructor(name) {
+        super(name, true);
+      }
+      decideAction(hand) {
+        // Basic strategy: hit if value is less than 17, stand otherwise
+        return hand.getValue() < 17 ? 'hit' : 'stand';
+      }
+    }
+
+    // Dealer Class
+    class Dealer {
+      constructor() {
+        this.hand = new Hand();
+      }
+      play(deck) {
+        while (this.hand.getValue() < 17) {
+          this.hand.addCard(deck.deal());
         }
+      }
+      reset() {
+        this.hand = new Hand();
+      }
+    }
 
-        // Dealer Class
-        class Dealer {
-            constructor() {
-                this.hand = new Hand();
-            }
-            play(deck) {
-                while (this.hand.getValue() < 17) {
-                    this.hand.addCard(deck.deal());
-                }
-            }
-            reset() {
-                this.hand = new Hand();
-            }
-        }
+    // Game Class
+    class Game {
+      constructor() {
+        this.deck = new Deck();
+        this.deck.shuffle();
+        this.players = [
+          new Player('Player'),
+          new AIPlayer('AI 1'),
+          new AIPlayer('AI 2'),
+          new AIPlayer('AI 3'),
+          new AIPlayer('AI 4')
+        ];
+        this.dealer = new Dealer();
+        this.currentPlayerIndex = 0;
+        this.currentHandIndex = 0;
+        this.state = 'betting';
+        this.message = 'Place your bet and click Deal.';
+      }
 
-        // Game Class
-        class Game {
-            constructor() {
-                this.deck = new Deck();
-                this.deck.shuffle();
-                this.players = [
-                    new Player('Player'),
-                    new AIPlayer('AI 1'),
-                    new AIPlayer('AI 2'),
-                    new AIPlayer('AI 3'),
-                    new AIPlayer('AI 4')
-                ];
-                this.dealer = new Dealer();
-                this.currentPlayerIndex = 0;
-                this.currentHandIndex = 0;
-                this.state = 'betting';
-                this.message = 'Place your bet and click Deal.';
-            }
+      startRound(humanBet) {
+        // Reset indices for the new round
+        this.currentPlayerIndex = 0;
+        this.currentHandIndex = 0;
+        // Place bets for all players (bet amounts remain intact through the round)
+        this.players[0].placeBet(humanBet);
+        this.players.slice(1).forEach(ai => ai.placeBet(Math.min(10, ai.balance)));
+        this.dealInitialCards();
+        this.checkInitialBlackjack();
+      }
 
-            startRound(humanBet) {
-                // Reset indices for the new round
-                this.currentPlayerIndex = 0;
-                this.currentHandIndex = 0;
-                // Place bets for all players
-                this.players[0].placeBet(humanBet);
-                this.players.slice(1).forEach(ai => ai.placeBet(Math.min(10, ai.balance)));
-                this.dealInitialCards();
-                this.checkInitialBlackjack();
-            }
+      // Instead of a full reset, we only reset the hands (preserving the placed bet)
+      dealInitialCards() {
+        this.deck.shuffle();
+        this.players.forEach(player => {
+          player.resetHand();
+          player.hands[0].addCard(this.deck.deal());
+          player.hands[0].addCard(this.deck.deal());
+        });
+        this.dealer.reset();
+        this.dealer.hand.addCard(this.deck.deal());
+        this.dealer.hand.addCard(this.deck.deal());
+      }
 
-            dealInitialCards() {
-                this.deck.shuffle();
-                this.players.forEach(player => {
-                    player.reset();
-                    player.hands[0].addCard(this.deck.deal());
-                    player.hands[0].addCard(this.deck.deal());
-                });
-                this.dealer.reset();
-                this.dealer.hand.addCard(this.deck.deal());
-                this.dealer.hand.addCard(this.deck.deal());
-            }
+      checkInitialBlackjack() {
+        const dealerHasAce = this.dealer.hand.cards[0].rank === 'ace';
+        const dealerHasBlackjack = this.dealer.hand.isBlackjack();
+        let roundEnded = false;
 
-            checkInitialBlackjack() {
-                const dealerHasAce = this.dealer.hand.cards[0].rank === 'ace';
-                const dealerHasBlackjack = this.dealer.hand.isBlackjack();
-                let roundEnded = false;
-
-                if (dealerHasBlackjack) {
-                    this.message = 'Dealer has Blackjack!';
-                    this.players.forEach(player => {
-                        player.hands.forEach(hand => {
-                            if (hand.isBlackjack()) {
-                                player.win(player.bet); // Push
-                            }
-                            if (player.insuranceBet > 0) {
-                                player.win(player.insuranceBet * 3); // 2:1 payout
-                            }
-                        });
-                    });
-                    roundEnded = true;
-                } else {
-                    this.players.forEach(player => {
-                        player.hands.forEach(hand => {
-                            if (hand.isBlackjack()) {
-                                const payout = Math.floor(player.bet * 1.5); // 3:2 payout
-                                player.win(player.bet + payout);
-                                player.bet = 0; // Hand is settled
-                            }
-                        });
-                    });
-                }
-
-                if (dealerHasAce && !dealerHasBlackjack) {
-                    this.state = 'insurance';
-                    this.message = 'Dealer has an Ace. Take insurance?';
-                } else if (roundEnded) {
-                    this.state = 'betting';
-                    this.message = 'Round over. Place your bet for the next round.';
-                } else {
-                    this.state = 'playerTurn';
-                    this.currentPlayerIndex = 0;
-                    this.currentHandIndex = 0;
-                    this.message = this.players[0].isAI ? `${this.players[0].name}'s turn` : 'Your turn';
-                    if (this.players[0].isAI) this.aiPlay(this.players[0]);
-                }
-            }
-
-            offerInsurance(amount) {
-                if (this.state !== 'insurance') return;
-                if (amount > 0) this.players[0].placeInsurance(amount);
-                this.state = 'playerTurn';
-                this.currentPlayerIndex = 0;
-                this.currentHandIndex = 0;
-                this.message = 'Your turn';
-                render();
-                if (this.players[0].isAI) this.aiPlay(this.players[0]);
-            }
-
-            nextHandOrPlayer() {
-                const currentPlayer = this.players[this.currentPlayerIndex];
-                this.currentHandIndex++;
-                if (this.currentHandIndex >= currentPlayer.hands.length) {
-                    this.currentPlayerIndex++;
-                    this.currentHandIndex = 0;
-                    if (this.currentPlayerIndex >= this.players.length) {
-                        this.state = 'dealerTurn';
-                        this.message = "Dealer's turn";
-                        render();
-                        setTimeout(() => {
-                            this.dealer.play(this.deck);
-                            this.state = 'evaluating';
-                            this.determineWinners();
-                            render();
-                        }, 1000);
-                    } else {
-                        const nextPlayer = this.players[this.currentPlayerIndex];
-                        this.message = nextPlayer.isAI ? `${nextPlayer.name}'s turn` : 'Your turn';
-                        render();
-                        if (nextPlayer.isAI) {
-                            setTimeout(() => this.aiPlay(nextPlayer), 500);
-                        }
-                    }
-                } else {
-                    this.message = 'Your turn';
-                    render();
-                }
-            }
-
-            aiPlay(player) {
-                const hand = player.hands[0]; // AIs don't split
-                while (!hand.isBust() && this.state === 'playerTurn') {
-                    const action = player.decideAction(hand);
-                    if (action === 'hit') {
-                        hand.addCard(this.deck.deal());
-                        render();
-                    } else {
-                        break;
-                    }
-                }
-                this.nextHandOrPlayer();
-            }
-
-            hit() {
-                const player = this.players[this.currentPlayerIndex];
-                const hand = player.hands[this.currentHandIndex];
-                hand.addCard(this.deck.deal());
-                if (hand.isBust()) {
-                    this.message = 'Bust!';
-                    this.nextHandOrPlayer();
-                }
-            }
-
-            stand() {
-                this.nextHandOrPlayer();
-            }
-
-            doubleDown() {
-                const player = this.players[this.currentPlayerIndex];
-                const hand = player.hands[this.currentHandIndex];
-                if (hand.cards.length === 2 && player.balance >= player.bet) {
-                    player.placeBet(player.bet);
-                    hand.addCard(this.deck.deal());
-                    this.nextHandOrPlayer();
-                }
-            }
-
-            split() {
-                const player = this.players[this.currentPlayerIndex];
-                const hand = player.hands[this.currentHandIndex];
-                if (hand.canSplit() && player.balance >= player.bet) {
-                    player.placeBet(player.bet);
-                    const newHand = new Hand();
-                    newHand.addCard(hand.cards.pop());
-                    hand.addCard(this.deck.deal());
-                    newHand.addCard(this.deck.deal());
-                    player.hands.push(newHand);
-                    render();
-                }
-            }
-
-            surrender() {
-                const player = this.players[this.currentPlayerIndex];
-                const hand = player.hands[this.currentHandIndex];
-                if (hand.cards.length === 2) {
-                    player.win(Math.floor(player.bet / 2));
-                    player.bet = 0;
-                    player.hands.splice(this.currentHandIndex, 1);
-                    if (player.hands.length === 0) player.hands.push(new Hand());
-                    this.nextHandOrPlayer();
-                }
-            }
-
-            determineWinners() {
-                const dealerValue = this.dealer.hand.getValue();
-                let message = dealerValue > 21 ? 'Dealer busts! ' : '';
-                this.players.forEach(player => {
-                    player.hands.forEach(hand => {
-                        if (player.bet === 0) return; // Hand already settled (e.g., Blackjack)
-                        const playerValue = hand.getValue();
-                        if (playerValue > 21) {
-                            message += `${player.name} busts. Lose. `;
-                        } else if (dealerValue > 21 || playerValue > dealerValue) {
-                            const winAmount = player.bet * 2;
-                            player.win(winAmount);
-                            message += `${player.name} wins $${winAmount}. `;
-                        } else if (playerValue === dealerValue) {
-                            player.win(player.bet);
-                            message += `${player.name} pushes. `;
-                        } else {
-                            message += `${player.name} loses. `;
-                        }
-                    });
-                    player.reset();
-                });
-                this.message = message + 'Place your bet for the next round.';
-                this.state = 'betting';
-            }
-        }
-
-        // Initialize Game
-        const game = new Game();
-
-        // Render Function
-        function render() {
-            const playersContainer = document.getElementById('players-container');
-            playersContainer.innerHTML = '';
-            game.players.forEach((player, pIndex) => {
-                const playerDiv = document.createElement('div');
-                playerDiv.className = 'player';
-                if (game.state === 'playerTurn' && pIndex === game.currentPlayerIndex) {
-                    playerDiv.classList.add('active-player');
-                }
-                playerDiv.innerHTML = `<h3>${player.name}</h3>
-                                       <p>Balance: $${player.balance}</p>
-                                       <p>Bet: $${player.bet}</p>`;
-                if (player.insuranceBet > 0) {
-                    playerDiv.innerHTML += `<p>Insurance: $${player.insuranceBet}</p>`;
-                }
-                player.hands.forEach((hand, hIndex) => {
-                    const handDiv = document.createElement('div');
-                    handDiv.className = 'hand';
-                    handDiv.innerHTML = `<p>Hand ${hIndex + 1}: ${hand.getValue()}</p>`;
-                    hand.cards.forEach(card => {
-                        const img = document.createElement('img');
-                        img.src = card.getImage();
-                        img.className = 'card dealt';
-                        handDiv.appendChild(img);
-                    });
-                    playerDiv.appendChild(handDiv);
-                });
-                playersContainer.appendChild(playerDiv);
+        if (dealerHasBlackjack) {
+          this.message = 'Dealer has Blackjack!';
+          this.players.forEach(player => {
+            player.hands.forEach(hand => {
+              if (hand.isBlackjack()) {
+                // Push for blackjack: return the bet
+                player.win(player.bet);
+              }
+              if (player.insuranceBet > 0) {
+                player.win(player.insuranceBet * 3); // 2:1 payout on insurance
+              }
             });
-
-            const dealerHandDiv = document.getElementById('dealer-hand');
-            dealerHandDiv.innerHTML = '<h2>Dealer</h2>';
-            if (game.state === 'playerTurn' || game.state === 'insurance') {
-                const img1 = document.createElement('img');
-                img1.src = game.dealer.hand.cards[0].getImage();
-                img1.className = 'card dealt';
-                dealerHandDiv.appendChild(img1);
-                const img2 = document.createElement('img');
-                img2.src = 'cards/back.png';
-                img2.className = 'card';
-                dealerHandDiv.appendChild(img2);
-            } else {
-                game.dealer.hand.cards.forEach(card => {
-                    const img = document.createElement('img');
-                    img.src = card.getImage();
-                    img.className = 'card dealt';
-                    dealerHandDiv.appendChild(img);
-                });
-                dealerHandDiv.innerHTML += `<p>Value: ${game.dealer.hand.getValue()}</p>`;
-            }
-
-            // Control Buttons
-            const isHumanTurn = game.state === 'playerTurn' && game.currentPlayerIndex === 0;
-            const currentHand = isHumanTurn ? game.players[0].hands[game.currentHandIndex] : null;
-            document.getElementById('hit-button').disabled = !isHumanTurn;
-            document.getElementById('stand-button').disabled = !isHumanTurn;
-            document.getElementById('double-button').disabled = !isHumanTurn || !currentHand || currentHand.cards.length !== 2 || game.players[0].balance < game.players[0].bet;
-            document.getElementById('split-button').disabled = !isHumanTurn || !currentHand || !currentHand.canSplit() || game.players[0].balance < game.players[0].bet;
-            document.getElementById('surrender-button').disabled = !isHumanTurn || !currentHand || currentHand.cards.length !== 2;
-            document.getElementById('insurance-button').disabled = game.state !== 'insurance';
-            document.getElementById('deal-button').disabled = game.state !== 'betting';
-            document.getElementById('bet-input').disabled = game.state !== 'betting';
-
-            document.getElementById('message').textContent = game.message;
+          });
+          roundEnded = true;
+        } else {
+          // Payout immediate blackjack wins (3:2 payout)
+          this.players.forEach(player => {
+            player.hands.forEach(hand => {
+              if (hand.isBlackjack()) {
+                const payout = Math.floor(player.bet * 1.5);
+                player.win(player.bet + payout);
+                // Mark bet as settled by keeping it at its current value for evaluation later
+              }
+            });
+          });
         }
 
-        // Event Listeners
-        document.getElementById('deal-button').addEventListener('click', () => {
-            const betAmount = parseInt(document.getElementById('bet-input').value);
-            if (isNaN(betAmount) || betAmount <= 0 || betAmount > game.players[0].balance) {
-                alert('Invalid bet amount');
-                return;
-            }
-            game.startRound(betAmount);
-            render();
-        });
+        if (dealerHasAce && !dealerHasBlackjack) {
+          this.state = 'insurance';
+          this.message = 'Dealer has an Ace. Take insurance?';
+        } else if (roundEnded) {
+          this.state = 'betting';
+          this.message = 'Round over. Place your bet for the next round.';
+        } else {
+          this.state = 'playerTurn';
+          this.currentPlayerIndex = 0;
+          this.currentHandIndex = 0;
+          this.message = this.players[0].isAI ? `${this.players[0].name}'s turn` : 'Your turn';
+          if (this.players[0].isAI) this.aiPlay(this.players[0]);
+        }
+      }
 
-        document.getElementById('hit-button').addEventListener('click', () => {
-            game.hit();
-            render();
-        });
-
-        document.getElementById('stand-button').addEventListener('click', () => {
-            game.stand();
-            render();
-        });
-
-        document.getElementById('double-button').addEventListener('click', () => {
-            game.doubleDown();
-            render();
-        });
-
-        document.getElementById('split-button').addEventListener('click', () => {
-            game.split();
-            render();
-        });
-
-        document.getElementById('surrender-button').addEventListener('click', () => {
-            game.surrender();
-            render();
-        });
-
-        document.getElementById('insurance-button').addEventListener('click', () => {
-            const insuranceAmount = prompt('Enter insurance amount (up to half your bet):', game.players[0].bet / 2);
-            const amount = parseInt(insuranceAmount);
-            if (isNaN(amount) || amount <= 0 || amount > game.players[0].bet / 2 || amount > game.players[0].balance) {
-                game.offerInsurance(0); // Skip insurance
-            } else {
-                game.offerInsurance(amount);
-            }
-        });
-
-        // Initial Render
+      offerInsurance(amount) {
+        if (this.state !== 'insurance') return;
+        if (amount > 0) this.players[0].placeInsurance(amount);
+        this.state = 'playerTurn';
+        this.currentPlayerIndex = 0;
+        this.currentHandIndex = 0;
+        this.message = 'Your turn';
         render();
-    </script>
+        if (this.players[0].isAI) this.aiPlay(this.players[0]);
+      }
+
+      nextHandOrPlayer() {
+        const currentPlayer = this.players[this.currentPlayerIndex];
+        this.currentHandIndex++;
+        if (this.currentHandIndex >= currentPlayer.hands.length) {
+          this.currentPlayerIndex++;
+          this.currentHandIndex = 0;
+          if (this.currentPlayerIndex >= this.players.length) {
+            this.state = 'dealerTurn';
+            this.message = "Dealer's turn";
+            render();
+            setTimeout(() => {
+              this.dealer.play(this.deck);
+              this.state = 'evaluating';
+              this.determineWinners();
+              render();
+            }, 1000);
+          } else {
+            const nextPlayer = this.players[this.currentPlayerIndex];
+            this.message = nextPlayer.isAI ? `${nextPlayer.name}'s turn` : 'Your turn';
+            render();
+            if (nextPlayer.isAI) {
+              setTimeout(() => this.aiPlay(nextPlayer), 500);
+            }
+          }
+        } else {
+          this.message = 'Your turn';
+          render();
+        }
+      }
+
+      aiPlay(player) {
+        const hand = player.hands[0]; // AIs don't split
+        while (!hand.isBust() && this.state === 'playerTurn') {
+          const action = player.decideAction(hand);
+          if (action === 'hit') {
+            hand.addCard(this.deck.deal());
+            render();
+          } else {
+            break;
+          }
+        }
+        this.nextHandOrPlayer();
+      }
+
+      hit() {
+        const player = this.players[this.currentPlayerIndex];
+        const hand = player.hands[this.currentHandIndex];
+        hand.addCard(this.deck.deal());
+        if (hand.isBust()) {
+          this.message = 'Bust!';
+          this.nextHandOrPlayer();
+        }
+      }
+
+      stand() {
+        this.nextHandOrPlayer();
+      }
+
+      doubleDown() {
+        const player = this.players[this.currentPlayerIndex];
+        const hand = player.hands[this.currentHandIndex];
+        if (hand.cards.length === 2 && player.balance >= player.bet) {
+          // Double the bet by placing an additional bet equal to the current bet
+          player.placeBet(player.bet);
+          hand.addCard(this.deck.deal());
+          this.nextHandOrPlayer();
+        }
+      }
+
+      split() {
+        const player = this.players[this.currentPlayerIndex];
+        const hand = player.hands[this.currentHandIndex];
+        if (hand.canSplit() && player.balance >= player.bet) {
+          // Place an additional bet for the new hand
+          player.placeBet(player.bet);
+          const newHand = new Hand();
+          // Remove one card from current hand and assign to new hand
+          newHand.addCard(hand.cards.pop());
+          // Deal one additional card for each hand
+          hand.addCard(this.deck.deal());
+          newHand.addCard(this.deck.deal());
+          player.hands.push(newHand);
+          render();
+        }
+      }
+
+      surrender() {
+        const player = this.players[this.currentPlayerIndex];
+        const hand = player.hands[this.currentHandIndex];
+        if (hand.cards.length === 2) {
+          player.win(Math.floor(player.bet / 2));
+          player.bet = 0;
+          player.hands.splice(this.currentHandIndex, 1);
+          if (player.hands.length === 0) player.hands.push(new Hand());
+          this.nextHandOrPlayer();
+        }
+      }
+
+      determineWinners() {
+        const dealerValue = this.dealer.hand.getValue();
+        let message = dealerValue > 21 ? 'Dealer busts! ' : '';
+        this.players.forEach(player => {
+          player.hands.forEach(hand => {
+            // If bet is 0, this hand has already been settled (e.g., blackjack)
+            if (player.bet === 0) return;
+            const playerValue = hand.getValue();
+            if (playerValue > 21) {
+              message += `${player.name} busts. Lose. `;
+            } else if (dealerValue > 21 || playerValue > dealerValue) {
+              const winAmount = player.bet * 2;
+              player.win(winAmount);
+              message += `${player.name} wins $${winAmount}. `;
+            } else if (playerValue === dealerValue) {
+              player.win(player.bet);
+              message += `${player.name} pushes. `;
+            } else {
+              message += `${player.name} loses. `;
+            }
+          });
+          // Full reset for the next round (clearing bet and hands)
+          player.reset();
+        });
+        this.message = message + 'Place your bet for the next round.';
+        this.state = 'betting';
+      }
+    }
+
+    // Initialize Game
+    const game = new Game();
+
+    // Render Function
+    function render() {
+      const playersContainer = document.getElementById('players-container');
+      playersContainer.innerHTML = '';
+      game.players.forEach((player, pIndex) => {
+        const playerDiv = document.createElement('div');
+        playerDiv.className = 'player';
+        if (game.state === 'playerTurn' && pIndex === game.currentPlayerIndex) {
+          playerDiv.classList.add('active-player');
+        }
+        playerDiv.innerHTML = `<h3>${player.name}</h3>
+                               <p>Balance: $${player.balance}</p>
+                               <p>Bet: $${player.bet}</p>`;
+        if (player.insuranceBet > 0) {
+          playerDiv.innerHTML += `<p>Insurance: $${player.insuranceBet}</p>`;
+        }
+        player.hands.forEach((hand, hIndex) => {
+          const handDiv = document.createElement('div');
+          handDiv.className = 'hand';
+          handDiv.innerHTML = `<p>Hand ${hIndex + 1}: ${hand.getValue()}</p>`;
+          hand.cards.forEach(card => {
+            const img = document.createElement('img');
+            img.src = card.getImage();
+            img.className = 'card dealt';
+            handDiv.appendChild(img);
+          });
+          playerDiv.appendChild(handDiv);
+        });
+        playersContainer.appendChild(playerDiv);
+      });
+
+      const dealerHandDiv = document.getElementById('dealer-hand');
+      dealerHandDiv.innerHTML = '<h2>Dealer</h2>';
+      if (game.state === 'playerTurn' || game.state === 'insurance') {
+        const img1 = document.createElement('img');
+        img1.src = game.dealer.hand.cards[0].getImage();
+        img1.className = 'card dealt';
+        dealerHandDiv.appendChild(img1);
+        const img2 = document.createElement('img');
+        img2.src = 'cards/back.png';
+        img2.className = 'card';
+        dealerHandDiv.appendChild(img2);
+      } else {
+        game.dealer.hand.cards.forEach(card => {
+          const img = document.createElement('img');
+          img.src = card.getImage();
+          img.className = 'card dealt';
+          dealerHandDiv.appendChild(img);
+        });
+        dealerHandDiv.innerHTML += `<p>Value: ${game.dealer.hand.getValue()}</p>`;
+      }
+
+      // Control Buttons Enable/Disable
+      const isHumanTurn = game.state === 'playerTurn' && game.currentPlayerIndex === 0;
+      const currentHand = isHumanTurn ? game.players[0].hands[game.currentHandIndex] : null;
+      document.getElementById('hit-button').disabled = !isHumanTurn;
+      document.getElementById('stand-button').disabled = !isHumanTurn;
+      document.getElementById('double-button').disabled =
+        !isHumanTurn || !currentHand || currentHand.cards.length !== 2 || game.players[0].balance < game.players[0].bet;
+      document.getElementById('split-button').disabled =
+        !isHumanTurn || !currentHand || !currentHand.canSplit() || game.players[0].balance < game.players[0].bet;
+      document.getElementById('surrender-button').disabled = !isHumanTurn || !currentHand || currentHand.cards.length !== 2;
+      document.getElementById('insurance-button').disabled = game.state !== 'insurance';
+      document.getElementById('deal-button').disabled = game.state !== 'betting';
+      document.getElementById('bet-input').disabled = game.state !== 'betting';
+
+      document.getElementById('message').textContent = game.message;
+    }
+
+    // Event Listeners
+    document.getElementById('deal-button').addEventListener('click', () => {
+      const betAmount = parseInt(document.getElementById('bet-input').value);
+      if (isNaN(betAmount) || betAmount <= 0 || betAmount > game.players[0].balance) {
+        alert('Invalid bet amount');
+        return;
+      }
+      game.startRound(betAmount);
+      render();
+    });
+
+    document.getElementById('hit-button').addEventListener('click', () => {
+      game.hit();
+      render();
+    });
+
+    document.getElementById('stand-button').addEventListener('click', () => {
+      game.stand();
+      render();
+    });
+
+    document.getElementById('double-button').addEventListener('click', () => {
+      game.doubleDown();
+      render();
+    });
+
+    document.getElementById('split-button').addEventListener('click', () => {
+      game.split();
+      render();
+    });
+
+    document.getElementById('surrender-button').addEventListener('click', () => {
+      game.surrender();
+      render();
+    });
+
+    document.getElementById('insurance-button').addEventListener('click', () => {
+      const insuranceAmount = prompt('Enter insurance amount (up to half your bet):', game.players[0].bet / 2);
+      const amount = parseInt(insuranceAmount);
+      if (isNaN(amount) || amount <= 0 || amount > game.players[0].bet / 2 || amount > game.players[0].balance) {
+        game.offerInsurance(0); // Skip insurance if invalid input
+      } else {
+        game.offerInsurance(amount);
+      }
+    });
+
+    // Initial Render
+    render();
+  </script>
 </body>
 </html>
